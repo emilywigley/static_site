@@ -18,7 +18,7 @@ def extract_title(markdown):
                 return block.split('# ')[1]
     raise Exception ("h1 header not present")
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
 
     new_dest_path = dest_path.replace(".md", ".html")
     
@@ -30,20 +30,22 @@ def generate_page(from_path, template_path, dest_path):
     title = extract_title(markdown)
     update_title = template_content.replace('{{ Title }}', title)
     update_content = update_title.replace('{{ Content }}', html_string)
+    update_href = update_content.replace('href="/', 'href="{basepath}')
+    update_src = update_href.replace('src="/', 'src="{basepath}')
 
     if os.path.exists(os.path.dirname(new_dest_path)) == False:
         os.makedirs(os.path.dirname(new_dest_path))
     f = open(new_dest_path, "w")
-    f.write(update_content)
+    f.write(update_src)
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
     for filename in os.listdir(dir_path_content):
         new_content_path = os.path.join(dir_path_content, filename)
         new_dest_dir_path = os.path.join(dest_dir_path, filename)
         if filename.endswith(".md"):
             print(f"\nfound md file: {new_content_path}")
             print(f"destination directory: {dest_dir_path}")
-            generate_page(new_content_path, template_path, new_dest_dir_path)
+            generate_page(new_content_path, template_path, new_dest_dir_path, basepath)
             pass
         elif os.path.isdir(new_content_path):
             print(f"\nthis is a directory: {new_content_path}")
@@ -53,7 +55,7 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
             if os.path.exists(new_dest_dir_path) == False:
                 print(f"make new directory: {new_dest_dir_path}")
                 os.makedirs(new_dest_dir_path)
-            generate_pages_recursive(new_content_path, template_path, new_dest_dir_path)
+            generate_pages_recursive(new_content_path, template_path, new_dest_dir_path, basepath)
 
 
 def return_common_path(path1, path2):
